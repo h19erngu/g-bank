@@ -9,6 +9,9 @@ from g_python.htools import RoomUsers, HEntity
 from g_python.hpacket import HPacket
 import asyncio
 
+from dotenv import load_dotenv
+import os
+
 extension_info = {
     "title": "Chatlog",
     "description": "just ocd innit",
@@ -16,11 +19,16 @@ extension_info = {
     "author": "Ishak"
 }
 
-DISCORD_LOG_WEBHOOK_URL = "https://discord.com/api/webhooks/1312015995954663424/toLnD8xvaEX5TI737DfsYDVj7ipvSmiMnp-O3MpdFO_tc8UNJ6BJ1Pcv-YUgaIczYHNs"
-DISCORD_SPAM_WEBHOOK_URL = "https://discord.com/api/webhooks/1312178620646821958/dVb5r-YVV36CZcZXf5K2yf1NjzScouwIfgNeMCfTKojAhP3dhXxoUpWWuzMG0qOo6Ntu"
-BOT_TOKEN = "MTMxMTg0ODExMjMyNjcwOTI4OA.GT9Qoc.jA2DAalQfxOYK1QpqUS_TVkWi0lZSGEvXL69p0"
-DISCORD_CHANNEL_ID = 1311864221293613066
-YOUR_DISCORD_USER_ID = "254761709015793665"
+
+load_dotenv()
+
+DISCORD_LOG_WEBHOOK_URL = os.getenv("DISCORD_LOG_WEBHOOK_URL")
+DISCORD_SPAM_WEBHOOK_URL = os.getenv("DISCORD_SPAM_WEBHOOK_URL")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DISCORD_CHANNEL_ID = os.getenv("DISCORD_CHANNEL_ID")
+YOUR_DISCORD_USER_ID = os.getenv("YOUR_DISCORD_USER_ID")
+
+
 
 intents = discord.Intents.default()
 intents.message_content = True
