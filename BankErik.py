@@ -116,11 +116,14 @@ def process_coin_command(user, message):
         ext.write_to_console(f"Error in process_coin_command for {user.name}: {e}")
 
 def handle_new_users(users):
-    """Handle new users entering the room."""
-    for user in users:
-        try:
-            offer_bankaccount(user)
-        except Exception as e:
+    try:    
+        if len(users) != 1:
+            return
+
+        user = users[0]
+        user_name = user.name if hasattr(user, 'name') else str(user)
+        offer_bankaccount(user_name)
+    except Exception as e:
             ext.write_to_console(f"Error handling new user {user.name if user else 'Unknown'}: {e}")
 
 # === Event Handlers ===
