@@ -145,6 +145,7 @@ def on_bobba_chat(msg: HMessage):
             "clickthrough mode is now:",
             "someone onto an arrow!",
             "is not close enough!",
+            "upright*",
             "of $10"
         ]
 
