@@ -64,20 +64,19 @@ def anti_afk():
 def offer_bankaccount(user):
     """Offer a bank account to a user if not already offered."""
     try:
-        if not user or not user.name:
+        if not user or not hasattr(user, 'name'):
+            ext.write_to_console(f"Invalid user object passed to offer_bankaccount: {user}")
             return
         if user.name == me or user.name in username_list or user.name in offered_users:
             return
         if not respond_enabled:
             return
-        
-        # ext.send_to_server(HPacket('Chat', f":offer {user.name} bankaccount"))
+
         send_message_after_delay(f":offer {user.name} bankaccount", 0, 2)
         offered_users.add(user.name)
-        ext.write_to_console(f"Bank account offered to {user.name}. Offered users: {offered_users}")
-        ext.write_to_console(f"Offered users: {offered_users}")
+        ext.write_to_console(f"Bank account offered to {user.name}.")
     except Exception as e:
-        ext.write_to_console(f"Error in offer_bankaccount for {user.name if user else 'Unknown'}: {e}")
+        ext.write_to_console(f"Error in offer_bankaccount for {user.name if hasattr(user, 'name') else 'Unknown'}: {e}")
 
 def process_coin_command(user, message):
     """Process coin-related commands (withdraw, deposit)."""
@@ -121,10 +120,14 @@ def handle_new_users(users):
             return
 
         user = users[0]
-        user_name = user.name if hasattr(user, 'name') else str(user)
-        offer_bankaccount(user_name)
+        ext.write_to_console(f"------new user {user}")
+        if hasattr(user, 'name'):
+            offer_bankaccount(user)
+        else:
+            ext.write_to_console(f"New user object does not have a 'name' attribute: {user}")
+        
     except Exception as e:
-            ext.write_to_console(f"Error handling new user {user.name if user else 'Unknown'}: {e}")
+        ext.write_to_console(f"Error handling new user {user.name if user else 'Unknown'}: {e}")
 
 # === Event Handlers ===
 
