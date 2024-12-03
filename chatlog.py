@@ -144,7 +144,8 @@ def on_bobba_chat(msg: HMessage):
             "you cannot un-escort",
             "clickthrough mode is now:",
             "someone onto an arrow!",
-            "is not close enough!"
+            "is not close enough!",
+            "of $10"
         ]
 
         if any(phrase in message.lower() for phrase in forbidden_phrases):
@@ -152,7 +153,7 @@ def on_bobba_chat(msg: HMessage):
 
         if "you receieve your paycheck!" in message:
             send_embed_to_discord(user.name, message, DISCORD_SPAM_WEBHOOK_URL)
-        elif " You receive a cut" in message:
+        elif "remaining till you receive your paycheck!" in message:
             send_embed_to_discord(user.name, message, DISCORD_SPAM_WEBHOOK_URL)
         else:
             if "RoomID: 105" in message:
