@@ -83,8 +83,8 @@ def process_coin_command(user, message):
     try:
         if user.name == me:
             return
-        if "Bulb" in [u.name for u in room_users.room_users.values()]:
-            return
+        # if "Bulb" in [u.name for u in room_users.room_users.values()]:
+        #     return
 
         # Match valid commands
         relaxed_match = re.search(r'\b(?:withdraw|deposit|dep)\b.*?(\d+)\b', message.lower())

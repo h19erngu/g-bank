@@ -17,7 +17,7 @@ DISCORD_LOG_WEBHOOK_URL = os.getenv("DISCORD_LOG_WEBHOOK_URL")
 DISCORD_SPAM_WEBHOOK_URL = os.getenv("DISCORD_SPAM_WEBHOOK_URL")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
-YOUR_DISCORD_USER_ID = os.getenv("YOUR_DISCORD_USER_ID")
+YOUR_DISCORD_USER_ID = int(os.getenv("YOUR_DISCORD_USER_ID"))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -146,25 +146,22 @@ def on_bobba_chat(msg: HMessage):
             "someone onto an arrow!",
             "is not close enough!",
             "upright*",
+            "you receieve your paycheck!",
+            "remaining till you receive your paycheck!",
             "of $10"
         ]
 
         if any(phrase in message.lower() for phrase in forbidden_phrases):
             return
 
-        if "you receieve your paycheck!" in message:
-            send_embed_to_discord(user.name, message, DISCORD_SPAM_WEBHOOK_URL)
-        elif "remaining till you receive your paycheck!" in message:
-            send_embed_to_discord(user.name, message, DISCORD_SPAM_WEBHOOK_URL)
+        if "RoomID: 105" in message:
+            input_to_bobba(":startwork")
+            send_embed_to_discord("System", message, DISCORD_LOG_WEBHOOK_URL)
+        elif MY_NAME and (MY_NAME.lower() in message or IRL_NAME.lower() in message.lower()):
+            send_to_discord(f"<@{YOUR_DISCORD_USER_ID}>", DISCORD_LOG_WEBHOOK_URL)
+            send_embed_to_discord(user.name, message, DISCORD_LOG_WEBHOOK_URL)
         else:
-            if "RoomID: 105" in message:
-                input_to_bobba(":startwork")
-                send_embed_to_discord("System", message, DISCORD_LOG_WEBHOOK_URL)
-            elif MY_NAME and (MY_NAME.lower() in message or IRL_NAME.lower() in message.lower()):
-                send_to_discord(f"<@{YOUR_DISCORD_USER_ID}>", DISCORD_LOG_WEBHOOK_URL)
-                send_embed_to_discord(user.name, message, DISCORD_LOG_WEBHOOK_URL)
-            else:
-                send_embed_to_discord(user.name, message, DISCORD_LOG_WEBHOOK_URL)
+            send_embed_to_discord(user.name, message, DISCORD_LOG_WEBHOOK_URL)
     except Exception as e:
         print(f"Error in on_bobba_chat: {e}")
 
@@ -182,17 +179,18 @@ def on_load_items(msg: HMessage):
 
 @client.event
 async def on_ready():
-    send_embed_to_discord("SYSTEM", f'Logged in as {client.user}', DISCORD_SPAM_WEBHOOK_URL)
     send_embed_to_discord("SYSTEM", f'Logged in as {client.user}', DISCORD_LOG_WEBHOOK_URL)
-
 
 @client.event
 async def on_message(message):
+    #if message.author.id != YOUR_DISCORD_USER_ID:
+    #    return
     if message.author == client.user or message.webhook_id:
         return
-    if message.channel.id == DISCORD_CHANNEL_ID:
-        if message.content:
-            input_to_bobba(message.content)
+    if message.channel.id != DISCORD_CHANNEL_ID:
+        return
+    if message.content:
+        input_to_bobba(message.content)
 
 
 @client.event
