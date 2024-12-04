@@ -172,10 +172,8 @@ def on_user_object(msg: HMessage):
     MY_ID = id
     MY_NAME = name
 
-
 def on_load_items(msg: HMessage):
     ext.send_to_server(HPacket('Chat', ":rid", 0))
-
 
 @client.event
 async def on_ready():
