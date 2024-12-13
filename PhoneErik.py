@@ -14,7 +14,7 @@ extension_info = {
     "title": "PhoneBot",
     "description": "Respond to mentions and offer phones",
     "version": "2.0",
-    "author": "Ishak"
+    "author": "Anon"
 }
 
 # === Global Configuration ===
@@ -27,13 +27,12 @@ ext.start()
 ext.send_to_server(HPacket('InfoRetrieve'))
 
 # === Global Variables ===
-me = "Demon"
+
+MY_NAME = None
+MY_ID = None
 respond_enabled = True
 last_message_time = 0
-offered_users = set(['PapiPanda', 'NigerianFarmer', 'Scrapper', 'Enes', 'ketamine', 'pugly', 'Bio', 'abdi', 'L', 'YG', 
-                 'night', 'purplemash', 'Sett', 'W22', 'Mason', 'tamago', 'ink', 'Mo', '6', 'Joseph', 'Chase-Chris', 
-                 'Pars', 'T', 'sicko', 'goated', 'Trust', 'hayl', 'Niall', 'cheese', 'Luz', 'hayley', 'Ray', 'BossAndCEO', 
-                 'miryoker', 'mala', 'huss', 'm4a1l9i7k', 'conreppin', 'Loud', 'yan', 'Dani', 'bug', '2'])
+offered_users = set()
 room_users = RoomUsers(ext)
 
 messages_list = [
@@ -42,13 +41,89 @@ messages_list = [
 ]
 
 username_list = [
-    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", "harms", "chloee", "Hailey", "Nathan", "Mira", "Joseph", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", "harms", "chloee", "Hailey", 
+    "Nathan", "Mira", "Joseph", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
+staff_list = [
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "Ish"]
+
+def process_coin_command(user, message):
+    try:
+        print(f"Processing command from user: {user.name}, message: {message}")
+
+        if user.name == MY_NAME:
+            print(f"Skipping processing for own command: {user.name}")
+            return
+        
+        if check_staff():
+            print(f"Staff member detected in room. Skipping command for: {user.name}")
+            return
+
+        if re.search(r'\b(offers|declines|gives)\b', message.lower()):
+            print(f"Message contains 'offers' or 'declines'. Skipping command for: {user.name}")
+            return
+
+        if re.search(r'\b(phone)\b', message.lower()):
+            print(f"Detected 'phone' in message. Offering phone to: {user.name}")
+
+            def delayed_process():
+                try:
+                    command = f":offer {user.name} phone"
+                    ext.send_to_server(HPacket('Chat', command))
+                    print(f"Sent phone offer to: {user.name}")
+                except Exception as e:
+                    print(f"Error offering phone to {user.name}: {e}")
+
+            timer = threading.Timer(3.0, delayed_process)
+            timer.start()
+            return
+
+        number_match = re.search(r'\b(\d+)\b', message)
+        keyword_match = re.search(r'\b(credits|creds|texts|text message|messages)\b', message.lower())
+
+        if number_match:
+            amount = int(number_match.group(1))
+            print(f"Detected number in message: {amount}")
+            if amount > 49:
+                print(f"Offering {amount} credits to: {user.name}")
+
+                def delayed_process():
+                    try:
+                        command = f":offer {user.name} credits {amount}"
+                        ext.send_to_server(HPacket('Chat', command))
+                        print(f"Sent credit offer of {amount} to: {user.name}")
+                    except Exception as e:
+                        print(f"Error offering {amount} credits to {user.name}: {e}")
+
+                timer = threading.Timer(3.0, delayed_process)
+                timer.start()
+        elif keyword_match:
+            print(f"Detected keyword for default credit offer in message from: {user.name}")
+            def delayed_process():
+                try:
+                    command = f":offer {user.name} credits 50"
+                    ext.send_to_server(HPacket('Chat', command))
+                    print(f"Sent default credit offer of 50 to: {user.name}")
+                except Exception as e:
+                    print(f"Error offering default credits to {user.name}: {e}")
+
+            timer = threading.Timer(3.0, delayed_process)
+            timer.start()
+    except Exception as e:
+        print(f"Error processing command from {user.name}: {e}")
+
 # === Helper Functions ===
+def check_staff():
+    for user in room_users.room_users.values():
+        if user.name in staff_list:
+            print(f"Staff member found: {user.name}")
+            return True
+    print("No staff members found in the room.")
+    return False
+
 
 def send_message_after_delay(message, bubbleType, delay):
-    """Send a message to the server after a specified delay."""
     def delayed_send():
         ext.send_to_server(HPacket('Chat', message, 0))
         ext.write_to_console(f"Sent delayed message: {message}")
@@ -56,17 +131,15 @@ def send_message_after_delay(message, bubbleType, delay):
     timer.start()
 
 def anti_afk():
-    """Send periodic actions to prevent being marked as AFK."""
     ext.send_to_server(HPacket('AvatarExpression', 9))
     threading.Timer(25, anti_afk).start()
 
 def offer_phone(user):
-    """Offer a phone to a user if not already offered."""
     try:
         if not user or not hasattr(user, 'name'):
             ext.write_to_console(f"Invalid user object passed to offer_phone: {user}")
             return
-        if user.name == me or user.name in username_list or user.name in offered_users:
+        if user.name == MY_NAME or user.name in username_list or user.name in offered_users:
             return
         if not respond_enabled:
             return
@@ -77,39 +150,13 @@ def offer_phone(user):
     except Exception as e:
         ext.write_to_console(f"Error in offer_phone for {user.name if hasattr(user, 'name') else 'Unknown'}: {e}")
 
-def process_coin_command(user, message):
-    """Process coin-related commands (withdraw, deposit)."""
-    try:
-        if user.name == me:
-            return
-
-        # Match valid commands
-        relaxed_match = re.search(r'\b(\d+)\s*credits\b', message.lower())
-
-        if relaxed_match:
-            amount = relaxed_match.group(1)
-            def delayed_process():
-                try:
-                    command = f":offer {user.name} credits {amount}"
-                    ext.send_to_server(HPacket('Chat', command))
-                    ext.write_to_console(f"Processed offer for {user.name} with {amount} credits.")
-                except Exception as e:
-                    ext.write_to_console(f"Error in delayed_process for offer command by {user.name}: {e}")
-
-            timer = threading.Timer(3.0, delayed_process)
-            timer.start()
-
-            ext.write_to_console(f"Detected offer command for {user.name}: '{message}' -> Offering {amount} credits.")
-    except Exception as e:
-        ext.write_to_console(f"Error in process_coin_command for {user.name}: {e}")
-
 def handle_new_users(users):
     try:    
         if len(users) != 1:
             return
 
         user = users[0]
-        ext.write_to_console(f"-new user {user}")
+        ext.write_to_console(f"new user {user}")
         if hasattr(user, 'name'):
             offer_phone(user)
         else:
@@ -120,29 +167,26 @@ def handle_new_users(users):
 
 # === Event Handlers ===
 
-def on_login(msg: HMessage):
-    """Handle login events and retrieve user information."""
-    global user, index
-    try:
-        (index, user) = msg.packet.read('is')
-    except Exception as e:
-        ext.write_to_console(f"Error in on_login: {e}")
+def on_user_object(msg: HMessage):
+    global MY_NAME, MY_ID
+    id, name = msg.packet.read('is')
+    MY_ID = id
+    MY_NAME = name
 
 def on_speech(msg: HMessage):
-    """Handle chat messages."""
     global respond_enabled, last_message_time
     try:
         (idx, message) = msg.packet.read('is')
         user = room_users.room_users.get(idx)
 
-        if not user or user.name == me:
+        if not user or user.name == MY_NAME:
             return
         if not respond_enabled:
             return
 
         process_coin_command(user, message)
 
-        if user.name in username_list and f"@{me}".lower() in message.lower():
+        if user.name in username_list and f"@{MY_NAME}".lower() in message.lower():
             current_time = time.time()
             if current_time - last_message_time >= 20:
                 random_message = random.choice(messages_list)
@@ -155,7 +199,6 @@ def on_speech(msg: HMessage):
         ext.write_to_console(f"Error in on_speech: {e}")
 
 def my_speech(msg: HMessage):
-    """Intercept and process user's outgoing messages."""
     global respond_enabled
     (message, bubbleType) = msg.packet.read('si')
 
@@ -180,7 +223,7 @@ ext.intercept(Direction.TO_SERVER, my_speech, 'Shout')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Chat')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Whisper')
 
-ext.intercept(Direction.TO_CLIENT, on_login, 'UserObject')
+ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 
 # === Start Anti-AFK Timer ===
 anti_afk()

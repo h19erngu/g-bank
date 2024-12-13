@@ -27,7 +27,8 @@ ext.start()
 ext.send_to_server(HPacket('InfoRetrieve'))
 
 # === Global Variables ===
-me = "Demon"
+MY_NAME = None
+MY_ID = None
 respond_enabled = True
 last_message_time = 0
 offered_users = set(['PapiPanda', 'NigerianFarmer', 'Scrapper', 'Enes', 'ketamine', 'pugly', 'Bio', 'abdi', 'L', 'YG', 
@@ -42,11 +43,20 @@ messages_list = [
 ]
 
 username_list = [
-    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Alex", 
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Alex", 
     "Gosan", "paws", "R", "enemy", "Anne", "Ballin", "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
+staff_list = [
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+]
+
 # === Helper Functions ===
+def check_staff(room_users, staff_list):
+    for user in room_users.values():
+        if user["name"] in staff_list:
+            return True  # Exit immediately if a match is found
+    return False  # No match found
 
 def send_message_after_delay(message, bubbleType, delay):
     """Send a message to the server after a specified delay."""
@@ -67,8 +77,10 @@ def offer_bankaccount(user):
         if not user or not hasattr(user, 'name'):
             ext.write_to_console(f"Invalid user object passed to offer_bankaccount: {user}")
             return
-        if user.name == me or user.name in username_list or user.name in offered_users:
+        
+        if user.name == MY_NAME or user.name in username_list or user.name in offered_users:
             return
+        
         if not respond_enabled:
             return
 
@@ -81,8 +93,11 @@ def offer_bankaccount(user):
 def process_coin_command(user, message):
     """Process coin-related commands (withdraw, deposit)."""
     try:
-        if user.name == me:
+        if user.name == MY_NAME:
             return
+        if check_staff(room_users, staff_list):
+            return
+
         # if "Bulb" in [u.name for u in room_users.room_users.values()]:
         #     return
 
@@ -131,13 +146,12 @@ def handle_new_users(users):
 
 # === Event Handlers ===
 
-def on_login(msg: HMessage):
-    """Handle login events and retrieve user information."""
-    global user, index
-    try:
-        (index, user) = msg.packet.read('is')
-    except Exception as e:
-        ext.write_to_console(f"Error in on_login: {e}")
+def on_user_object(msg: HMessage):
+    global MY_NAME, MY_ID
+    id, name = msg.packet.read('is')
+    MY_ID = id
+    MY_NAME = name
+
 
 def on_speech(msg: HMessage):
     """Handle chat messages."""
@@ -146,14 +160,14 @@ def on_speech(msg: HMessage):
         (idx, message) = msg.packet.read('is')
         user = room_users.room_users.get(idx)
 
-        if not user or user.name == me:
+        if not user or user.name == MY_NAME:
             return
         if not respond_enabled:
             return
 
         process_coin_command(user, message)
 
-        if user.name in username_list and f"@{me}".lower() in message.lower():
+        if user.name in username_list and f"@{MY_NAME}".lower() in message.lower():
             current_time = time.time()
             if current_time - last_message_time >= 20:
                 random_message = random.choice(messages_list)
@@ -191,7 +205,7 @@ ext.intercept(Direction.TO_SERVER, my_speech, 'Shout')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Chat')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Whisper')
 
-ext.intercept(Direction.TO_CLIENT, on_login, 'UserObject')
+ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 
 # === Start Anti-AFK Timer ===
 anti_afk()
