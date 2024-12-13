@@ -1,7 +1,7 @@
 import sys
 import time
-import requests
-import discord
+import requests  # type: ignore
+import discord  # type: ignore
 import random
 from g_python.gextension import Extension
 from g_python.hmessage import Direction, HMessage
@@ -10,14 +10,19 @@ from g_python.hpacket import HPacket
 import asyncio
 from dotenv import load_dotenv
 import os
+import re
 
 load_dotenv()
 
 DISCORD_LOG_WEBHOOK_URL = os.getenv("DISCORD_LOG_WEBHOOK_URL")
 DISCORD_SPAM_WEBHOOK_URL = os.getenv("DISCORD_SPAM_WEBHOOK_URL")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
-YOUR_DISCORD_USER_ID = int(os.getenv("YOUR_DISCORD_USER_ID"))
+DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID", 0))
+YOUR_DISCORD_USER_ID = int(os.getenv("YOUR_DISCORD_USER_ID", 0))
+
+if not DISCORD_LOG_WEBHOOK_URL or not BOT_TOKEN:
+    print("Environment variables are missing. Check your .env file.")
+    sys.exit(1)
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -37,7 +42,8 @@ MY_ID = None
 IRL_NAME = "erik"
 
 user_colors = {}
-
+last_sent_time = 0
+RATE_LIMIT = 1  # seconds
 
 def get_random_color():
     return random.randint(0x000000, 0xFFFFFF)
@@ -59,22 +65,23 @@ def handle_new_users(users):
             log_message = f"📥 [{user_name}] has entered the room."
             send_embed_to_discord(user_name, log_message, DISCORD_LOG_WEBHOOK_URL)
     except Exception as e:
-        ext.write_to_console(f"Error handling new user {user_name}: {e}")
+        ext.write_to_console(f"Error handling new user: {e}")
 
 
 def on_user_remove(msg: HMessage):
     _, user_id = msg.packet.read('is')
     user_id = int(user_id)
     try:
-        user = users.room_users[user_id]
-        del users.room_users[user_id]
-        if user.name != MY_NAME:
-            log_message = f"🚪 {user.name} has left the room."
-            send_embed_to_discord(user.name, log_message, DISCORD_LOG_WEBHOOK_URL)
+        if user_id in users.room_users:
+            user = users.room_users[user_id]
+            del users.room_users[user_id]
+            if user.name != MY_NAME:
+                log_message = f"🚪 {user.name} has left the room."
+                send_embed_to_discord(user.name, log_message, DISCORD_LOG_WEBHOOK_URL)
     except KeyError:
         pass
     except Exception as e:
-        print(f"An error occurred while handling user removal: {e}")
+        print(f"Error handling user removal: {e}")
 
 
 def send_to_discord(message, webhook_url):
@@ -86,7 +93,12 @@ def send_to_discord(message, webhook_url):
 
 
 def send_embed_to_discord(username, message, webhook_url):
+    global last_sent_time
     try:
+        if time.time() - last_sent_time < RATE_LIMIT:
+            time.sleep(RATE_LIMIT - (time.time() - last_sent_time))
+        last_sent_time = time.time()
+
         embed = {
             "embeds": [
                 {
@@ -95,7 +107,15 @@ def send_embed_to_discord(username, message, webhook_url):
                 }
             ]
         }
-        requests.post(webhook_url, json=embed)
+        response = requests.post(webhook_url, json=embed)
+
+        if response.status_code == 429:  # Rate limit response
+            retry_after = response.json().get('retry_after', 1) / 1000.0
+            print(f"Rate limited. Retrying after {retry_after} seconds.")
+            time.sleep(retry_after)  # Wait for the retry period
+            return send_embed_to_discord(username, message, webhook_url)  # Retry
+
+        response.raise_for_status()  # Raise HTTPError for other 4xx/5xx errors
     except Exception as e:
         print(f"Error sending embed to Discord: {e}")
 
@@ -151,7 +171,11 @@ def on_bobba_chat(msg: HMessage):
             "of $10"
         ]
 
-        if any(phrase in message.lower() for phrase in forbidden_phrases):
+        def contains_forbidden_phrases(msg):
+            normalized_message = re.sub(r'\s+', ' ', msg.lower())
+            return any(phrase in normalized_message for phrase in forbidden_phrases)
+
+        if contains_forbidden_phrases(message):
             return
 
         if "RoomID: 105" in message:
@@ -168,7 +192,7 @@ def on_bobba_chat(msg: HMessage):
 
 def on_user_object(msg: HMessage):
     global MY_NAME, MY_ID
-    (id, name) = msg.packet.read('is')
+    id, name = msg.packet.read('is')
     MY_ID = id
     MY_NAME = name
 
@@ -181,8 +205,6 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    #if message.author.id != YOUR_DISCORD_USER_ID:
-    #    return
     if message.author == client.user or message.webhook_id:
         return
     if message.channel.id != DISCORD_CHANNEL_ID:
@@ -210,7 +232,10 @@ ext.intercept(Direction.TO_CLIENT, on_bobba_chat, 'Shout')
 ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 ext.intercept(Direction.TO_CLIENT, on_load_items, 'Items')
 
-if __name__ == "__main__":
+async def main():
     ext.start()
     ext.send_to_server(HPacket('InfoRetrieve'))
-    asyncio.run(start_discord_bot())
+    await start_discord_bot()
+
+if __name__ == "__main__":
+    asyncio.run(main())

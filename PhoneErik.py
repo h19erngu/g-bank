@@ -11,8 +11,8 @@ from g_python.htools import RoomUsers, HEntity
 
 # === Extension Metadata ===
 extension_info = {
-    "title": "BankBot",
-    "description": "Respond to mentions and offer bank accounts",
+    "title": "PhoneBot",
+    "description": "Respond to mentions and offer phones",
     "version": "2.0",
     "author": "Ishak"
 }
@@ -42,8 +42,7 @@ messages_list = [
 ]
 
 username_list = [
-    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Alex", 
-    "Gosan", "paws", "R", "enemy", "Anne", "Ballin", "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", "harms", "chloee", "Hailey", "Nathan", "Mira", "Joseph", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
 # === Helper Functions ===
@@ -61,56 +60,46 @@ def anti_afk():
     ext.send_to_server(HPacket('AvatarExpression', 9))
     threading.Timer(25, anti_afk).start()
 
-def offer_bankaccount(user):
-    """Offer a bank account to a user if not already offered."""
+def offer_phone(user):
+    """Offer a phone to a user if not already offered."""
     try:
         if not user or not hasattr(user, 'name'):
-            ext.write_to_console(f"Invalid user object passed to offer_bankaccount: {user}")
+            ext.write_to_console(f"Invalid user object passed to offer_phone: {user}")
             return
         if user.name == me or user.name in username_list or user.name in offered_users:
             return
         if not respond_enabled:
             return
 
-        send_message_after_delay(f":offer {user.name} bankaccount", 0, 8)
+        send_message_after_delay(f":offer {user.name} phone", 0, 8)
         offered_users.add(user.name)
         ext.write_to_console(f"Offered_users >> ${offered_users}")
     except Exception as e:
-        ext.write_to_console(f"Error in offer_bankaccount for {user.name if hasattr(user, 'name') else 'Unknown'}: {e}")
+        ext.write_to_console(f"Error in offer_phone for {user.name if hasattr(user, 'name') else 'Unknown'}: {e}")
 
 def process_coin_command(user, message):
     """Process coin-related commands (withdraw, deposit)."""
     try:
         if user.name == me:
             return
-        # if "Bulb" in [u.name for u in room_users.room_users.values()]:
-        #     return
 
         # Match valid commands
-        relaxed_match = re.search(r'\b(?:withdraw|deposit|dep)\b.*?(\d+)\b', message.lower())
-        strict_match = re.match(r'^with\s+(\d+)$', message.lower().strip())
+        relaxed_match = re.search(r'\b(\d+)\s*credits\b', message.lower())
 
         if relaxed_match:
             amount = relaxed_match.group(1)
-            command_type = "withdraw" if "withdraw" in message.lower() else "deposit"
-        elif strict_match:
-            amount = strict_match.group(1)
-            command_type = "withdraw"
-        else:
-            return
+            def delayed_process():
+                try:
+                    command = f":offer {user.name} credits {amount}"
+                    ext.send_to_server(HPacket('Chat', command))
+                    ext.write_to_console(f"Processed offer for {user.name} with {amount} credits.")
+                except Exception as e:
+                    ext.write_to_console(f"Error in delayed_process for offer command by {user.name}: {e}")
 
-        def delayed_process():
-            try:
-                command = f":{command_type} {user.name} {amount}"
-                ext.send_to_server(HPacket('Chat', command))
-                ext.write_to_console(f"Processed {command_type} for {user.name} with amount {amount}.")
-            except Exception as e:
-                ext.write_to_console(f"Error in delayed_process for {command_type} command by {user.name}: {e}")
+            timer = threading.Timer(3.0, delayed_process)
+            timer.start()
 
-        timer = threading.Timer(3.0, delayed_process)
-        timer.start()
-
-        ext.write_to_console(f"Detected {command_type} command for {user.name}: '{message}' -> Amount: {amount}")
+            ext.write_to_console(f"Detected offer command for {user.name}: '{message}' -> Offering {amount} credits.")
     except Exception as e:
         ext.write_to_console(f"Error in process_coin_command for {user.name}: {e}")
 
@@ -122,7 +111,7 @@ def handle_new_users(users):
         user = users[0]
         ext.write_to_console(f"-new user {user}")
         if hasattr(user, 'name'):
-            offer_bankaccount(user)
+            offer_phone(user)
         else:
             ext.write_to_console(f"New user object does not have a 'name' attribute: {user}")
         
