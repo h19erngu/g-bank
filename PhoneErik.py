@@ -61,7 +61,7 @@ def process_coin_command(user, message):
             return
 
         if re.search(r'\b(offers|declines|gives)\b', message.lower()):
-            print(f"Message contains 'offers' or 'declines'. Skipping command for: {user.name}")
+            print(f"Message contains 'offers', 'declines', or 'gives'. Skipping command for: {user.name}")
             return
 
         if re.search(r'\b(phone)\b', message.lower()):
