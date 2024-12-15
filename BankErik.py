@@ -52,11 +52,13 @@ staff_list = [
 ]
 
 # === Helper Functions ===
-def check_staff(room_users, staff_list):
-    for user in room_users.values():
-        if user["name"] in staff_list:
-            return True  # Exit immediately if a match is found
-    return False  # No match found
+def check_staff():
+    for user in room_users.room_users.values():
+        if user.name in staff_list:
+            print(f"Staff member found: {user.name}")
+            return True
+    print("No staff members found in the room.")
+    return False
 
 def send_message_after_delay(message, bubbleType, delay):
     """Send a message to the server after a specified delay."""
@@ -95,7 +97,9 @@ def process_coin_command(user, message):
     try:
         if user.name == MY_NAME:
             return
-        if check_staff(room_users, staff_list):
+        
+        
+        if check_staff():
             return
 
         # if "Bulb" in [u.name for u in room_users.room_users.values()]:

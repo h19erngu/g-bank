@@ -80,15 +80,23 @@ def process_coin_command(user, message):
             return
 
         number_match = re.search(r'\b(\d+)\b', message)
-        keyword_match = re.search(r'\b(credits|creds|texts|text message|messages)\b', message.lower())
+        keyword_match = re.search(r'\b(credits|creds|texts|messages)\b', message.lower())
 
         if number_match:
             amount = int(number_match.group(1))
             print(f"Detected number in message: {amount}")
             if amount > 49:
-                print(f"Offering {amount} credits to: {user.name}")
+                def offer_twice():
+                    try:
+                        # Offer twice the amount
+                        double_amount = amount * 2
+                        command = f":offer {user.name} credits {double_amount}"
+                        ext.send_to_server(HPacket('Chat', command))
+                        print(f"Sent credit offer of {double_amount} to: {user.name}")
+                    except Exception as e:
+                        print(f"Error offering {double_amount} credits to {user.name}: {e}")
 
-                def delayed_process():
+                def offer_original():
                     try:
                         command = f":offer {user.name} credits {amount}"
                         ext.send_to_server(HPacket('Chat', command))
@@ -96,8 +104,11 @@ def process_coin_command(user, message):
                     except Exception as e:
                         print(f"Error offering {amount} credits to {user.name}: {e}")
 
-                timer = threading.Timer(3.0, delayed_process)
-                timer.start()
+                timer1 = threading.Timer(3.0, offer_twice)
+                timer1.start()
+                timer2 = threading.Timer(4.0, offer_original)
+                timer2.start()
+                
         elif keyword_match:
             print(f"Detected keyword for default credit offer in message from: {user.name}")
             def delayed_process():
@@ -132,7 +143,7 @@ def send_message_after_delay(message, bubbleType, delay):
 
 def anti_afk():
     ext.send_to_server(HPacket('AvatarExpression', 9))
-    threading.Timer(25, anti_afk).start()
+    threading.Timer(10, anti_afk).start()
 
 def offer_phone(user):
     try:
