@@ -7,7 +7,7 @@ import re
 from g_python.gextension import Extension
 from g_python.hmessage import Direction, HMessage
 from g_python.hpacket import HPacket
-from g_python.htools import RoomUsers, HEntity
+from g_python.htools import RoomUsers
 
 # === Extension Metadata ===
 extension_info = {
@@ -20,14 +20,13 @@ extension_info = {
 # === Global Configuration ===
 argv = sys.argv
 if len(argv) < 2:
-    argv = ["-p", 9092]
+    argv = ["-p", "9092"]
 
 ext = Extension(extension_info, argv, silent=True)
 ext.start()
 ext.send_to_server(HPacket('InfoRetrieve'))
 
 # === Global Variables ===
-
 MY_NAME = None
 MY_ID = None
 respond_enabled = True
@@ -36,17 +35,20 @@ offered_users = set()
 room_users = RoomUsers(ext)
 
 messages_list = [
-    "yo", ":D", "here", "yep", "sup", "im here", "hm", "yo boss", "right here", "yup", 
+    "yo", ":D", "here", "yep", "sup", "im here", "hm", "yo boss", "right here", "yup",
     "yh", "mm", ":ok_hand:", "uwu", "yh", "yoo", "yh"
 ]
 
 username_list = [
-    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", "harms", "chloee", "Hailey", 
+    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", "harms", "chloee", "Hailey",
     "Nathan", "Mira", "Joseph", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
 staff_list = [
-    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "Ish"]
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "Ish"
+]
+
+# === Functions ===
 
 def process_coin_command(user, message):
     try:
@@ -55,7 +57,7 @@ def process_coin_command(user, message):
         if user.name == MY_NAME:
             print(f"Skipping processing for own command: {user.name}")
             return
-        
+
         if check_staff():
             print(f"Staff member detected in room. Skipping command for: {user.name}")
             return
@@ -88,7 +90,6 @@ def process_coin_command(user, message):
             if amount > 49:
                 def offer_twice():
                     try:
-                        # Offer twice the amount
                         double_amount = amount * 2
                         command = f":offer {user.name} credits {double_amount}"
                         ext.send_to_server(HPacket('Chat', command))
@@ -108,9 +109,10 @@ def process_coin_command(user, message):
                 timer1.start()
                 timer2 = threading.Timer(4.0, offer_original)
                 timer2.start()
-                
+
         elif keyword_match:
             print(f"Detected keyword for default credit offer in message from: {user.name}")
+
             def delayed_process():
                 try:
                     command = f":offer {user.name} credits 50"
@@ -124,7 +126,6 @@ def process_coin_command(user, message):
     except Exception as e:
         print(f"Error processing command from {user.name}: {e}")
 
-# === Helper Functions ===
 def check_staff():
     for user in room_users.room_users.values():
         if user.name in staff_list:
@@ -133,10 +134,9 @@ def check_staff():
     print("No staff members found in the room.")
     return False
 
-
 def send_message_after_delay(message, bubbleType, delay):
     def delayed_send():
-        ext.send_to_server(HPacket('Chat', message, 0))
+        ext.send_to_server(HPacket('Chat', message, bubbleType))
         ext.write_to_console(f"Sent delayed message: {message}")
     timer = threading.Timer(delay, delayed_send)
     timer.start()
@@ -157,22 +157,22 @@ def offer_phone(user):
 
         send_message_after_delay(f":offer {user.name} phone", 0, 8)
         offered_users.add(user.name)
-        ext.write_to_console(f"Offered_users >> ${offered_users}")
+        ext.write_to_console(f"Offered_users >> {offered_users}")
     except Exception as e:
         ext.write_to_console(f"Error in offer_phone for {user.name if hasattr(user, 'name') else 'Unknown'}: {e}")
 
 def handle_new_users(users):
-    try:    
+    try:
         if len(users) != 1:
             return
 
         user = users[0]
-        ext.write_to_console(f"new user {user}")
+        ext.write_to_console(f"New user {user}")
         if hasattr(user, 'name'):
             offer_phone(user)
         else:
             ext.write_to_console(f"New user object does not have a 'name' attribute: {user}")
-        
+
     except Exception as e:
         ext.write_to_console(f"Error handling new user {user.name if user else 'Unknown'}: {e}")
 
@@ -187,7 +187,7 @@ def on_user_object(msg: HMessage):
 def on_speech(msg: HMessage):
     global respond_enabled, last_message_time
     try:
-        (idx, message) = msg.packet.read('is')
+        idx, message = msg.packet.read('is')
         user = room_users.room_users.get(idx)
 
         if not user or user.name == MY_NAME:
@@ -211,7 +211,7 @@ def on_speech(msg: HMessage):
 
 def my_speech(msg: HMessage):
     global respond_enabled
-    (message, bubbleType) = msg.packet.read('si')
+    message, bubbleType = msg.packet.read('si')
 
     if message.lower() == "//":
         msg.is_blocked = True
