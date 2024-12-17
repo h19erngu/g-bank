@@ -1,0 +1,15 @@
+{
+  "name": "g-bank",
+  "version": "1.0.0",
+  "description": "Superhuman extension using GNode API",
+  "main": "superman.js",
+  "scripts": {
+      "start": "node superman.js -p 9092"
+  },
+  "author": "Ishak",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+      "gnode-api": "^1.0.0"
+  }
+}

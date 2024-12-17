@@ -83,7 +83,6 @@ def on_user_remove(msg: HMessage):
     except Exception as e:
         print(f"Error handling user removal: {e}")
 
-
 def send_to_discord(message, webhook_url):
     try:
         payload = {"content": message}

@@ -197,18 +197,29 @@ def my_speech(msg: HMessage):
         respond_enabled = False
         ext.write_to_console("Response to mentions is now OFF.")
 
+def on_user_remove(msg: HMessage):
+    _, user_id = msg.packet.read('is')
+    user_id = int(user_id)
+    try:
+        if user_id in room_users.room_users:
+            user = room_users.room_users[user_id]
+            del room_users.room_users[user_id]
+
+    except KeyError:
+        pass
+    except Exception as e:
+        print(f"Error handling user removal: {e}")
 # === Event Bindings ===
 
 room_users.on_new_users(handle_new_users)
 
+ext.intercept(Direction.TO_CLIENT, on_user_remove, 'UserRemove')
 ext.intercept(Direction.TO_CLIENT, on_speech, 'Shout')
 ext.intercept(Direction.TO_CLIENT, on_speech, 'Chat')
 ext.intercept(Direction.TO_CLIENT, on_speech, 'Whisper')
-
 ext.intercept(Direction.TO_SERVER, my_speech, 'Shout')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Chat')
 ext.intercept(Direction.TO_SERVER, my_speech, 'Whisper')
-
 ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 
 # === Start Anti-AFK Timer ===
