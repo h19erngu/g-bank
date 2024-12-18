@@ -241,7 +241,6 @@ def on_recv_chat(msg: HMessage):
             mention_message = f"{message}"
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {mention_message} YOU HAVE FALLEN ASLEEP"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
-
             ext.send_to_server(HPacket('Chat', " ", 0))
             ext.send_to_server(HPacket('Chat', ":startwork", 0))
 
@@ -249,8 +248,6 @@ def on_recv_chat(msg: HMessage):
             log_message = f":star:[{user.name}]: {message}"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
 
-            ext.send_to_server(HPacket('Chat', " ", 0))
-            ext.send_to_server(HPacket('Chat', ":startwork", 0))
         else:
             log_message = f":speech_balloon:[{user.name}]: {message}"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
