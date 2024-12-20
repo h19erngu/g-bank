@@ -27,12 +27,12 @@ ext.send_to_server(HPacket('InfoRetrieve'))
 users = RoomUsers(ext)
 
 my_personal_name = ["erik"] # add how many nicknames u want
-staff_list = ["Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Goku", "c", "Lisa", "$", "Bri", "Devil", "Angel", "Zane", "Leesa"]
+staff_list = ["Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Goku", "c", "Lisa", "$", "Bri", "Devil", "Angel", "Zane", "Leesa","Pars","Roboxy","huss","korpm","Top","Jason","Rudolf"]
 my_name = None
 my_id = None
 
 batch_size = 20  # Max number of messages in one batch
-batch_delay = 30  # Seconds to wait before sending the batch
+batch_delay = 120  # Seconds to wait before sending the batch
 
 message_batch = []
 
@@ -49,14 +49,9 @@ intents.typing = True
 
 client = discord.Client(intents=intents)
 
-
 message_queue = Queue()
-priority_queue = Queue()  # Separate queue for priority messages
 
 send_lock = threading.Lock()
-processed_users = set()
-last_sent_time = 0
-
 
 processed_users = set()
 
@@ -113,9 +108,6 @@ def on_user_remove(msg: HMessage):
 users.on_new_users(handle_new_users)
 ext.intercept(Direction.TO_CLIENT, on_user_remove, 'UserRemove')
 
-def log_debug(message):
-    print(f"[DEBUG] {time.strftime('%Y-%m-%d %H:%M:%S')} - {message}")
-
 def send_to_discord_embed(message, webhook_url, color=0x000000, mention_everyone=False):
     try:
         embed = {
@@ -130,8 +122,8 @@ def send_to_discord_embed(message, webhook_url, color=0x000000, mention_everyone
 
         response = requests.post(webhook_url, json=embed)
         if response.status_code == 429:  # Rate limited
-            retry_after = int(response.headers.get("Retry-After", 1))
-            log_debug(f"Rate limited. Retrying in {retry_after} seconds...")
+            retry_after = int(response.headers.get("Retry-After", 0.5))
+            print(f"Rate limited. Retrying in {retry_after} seconds...")
             time.sleep(retry_after)
             return send_to_discord_embed(message, webhook_url, color, mention_everyone)
         elif response.status_code != 204:
@@ -142,61 +134,51 @@ def send_to_discord_embed(message, webhook_url, color=0x000000, mention_everyone
 def send_batch_to_discord(batch):
     try:
         combined_message = "\n".join([msg[0] for msg in batch])
+        
         webhook_url = batch[0][1]
         color = batch[0][2]
         mention_everyone = batch[0][3]
-        log_debug(f"Sending batch of {len(batch)} messages to Discord.")
-        send_to_discord_embed(combined_message, webhook_url, color, mention_everyone)
-    except Exception as e:
-        print(f"Error in send_batch_to_discord: {e}")
 
+        send_to_discord_embed(combined_message, webhook_url, color, mention_everyone)
+
+        global last_sent_time
+        last_sent_time = time.time()
+
+    except Exception as e:
+        print(f"Error sending message batch to Discord: {e}")
+
+last_sent_time = 0
+message_rate_limit = 1
+rate_limit_lock = Lock()
 
 def process_message_queue():
     global last_sent_time
+
     message_batch = []
-    log_debug("Started processing message queue.")
-
     while True:
-        try:
-            # Handle priority messages immediately
-            while not priority_queue.empty():
-                message, webhook_url, color, mention_everyone = priority_queue.get()
-                log_debug(f"Processing priority message: {message}")
-                send_to_discord_embed(message, webhook_url, color, mention_everyone)
+        if not message_queue.empty():
+            message, webhook_url, color, mention_everyone = message_queue.get()
 
-            # Collect messages for batching
-            if not message_queue.empty():
-                message, webhook_url, color, mention_everyone = message_queue.get()
-                message_batch.append((message, webhook_url, color, mention_everyone))
-                log_debug(f"Message added to batch: {message}")
+            message_batch.append((message, webhook_url, color, mention_everyone))
 
-            # Send batch when size is reached
+            # If batch is full, send it
             if len(message_batch) >= batch_size:
                 send_batch_to_discord(message_batch)
                 message_batch.clear()
-                last_sent_time = time.time()
 
-            # Send incomplete batch if timeout is exceeded
-            if message_batch and (time.time() - last_sent_time >= batch_delay):
+        if len(message_batch) > 0:
+            current_time = time.time()
+            if current_time - last_sent_time >= batch_delay:
                 send_batch_to_discord(message_batch)
                 message_batch.clear()
-                last_sent_time = time.time()
 
-            time.sleep(0.1)
-        except Exception as e:
-            print(f"Error in process_message_queue: {e}")
+        time.sleep(0.1)
 
-def queue_message(message, webhook_url, color=0x000000, mention_everyone=False, is_priority=False):
-    if is_priority:
-        log_debug(f"Priority message queued: {message}")
-        priority_queue.put((message, webhook_url, color, mention_everyone))
-    else:
-        log_debug(f"Queuing message: {message}")
-        message_queue.put((message, webhook_url, color, mention_everyone))
+def queue_message(message, webhook_url, color=0x000000, mention_everyone=False):
+    message_queue.put((message, webhook_url, color, mention_everyone))
 
-
-def is_in_staff_list(username):
-    return username in staff_list
+queue_thread = threading.Thread(target=process_message_queue, daemon=True)
+queue_thread.start()
 
 def on_sent_whisper(msg: HMessage):
     message, bubbleType = msg.packet.read('si')
@@ -208,6 +190,9 @@ def on_sent_whisper(msg: HMessage):
 
         log_message = f":speech_balloon:[WHISPER TO][{username}]: {custom_message}"
         queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700)
+
+def is_in_staff_list(username):
+    return username in staff_list
 
 def on_recv_chat(msg: HMessage):
     try:
@@ -240,25 +225,28 @@ def on_recv_chat(msg: HMessage):
             return
 
         if my_name and (
-            (my_name.lower() in message.lower() or any(name.lower() in message.lower() for name in my_personal_name))):
+            (my_name.lower() in message.lower() or any(name.lower() in message.lower() for name in my_personal_name))
+            and bubbleType not in [120, 118, 43] and "ishakk" not in message and "higher" not in message):
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {message}"
-            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True, is_priority=True)
+            # queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
+            send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
 
         elif is_in_staff_list(user.name):
             log_message = f":cop:[{user.name}]: {message}"
-            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080, is_priority=True)
-        
-        
+            # queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
+            send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
+
         elif id == my_id and message == "stops working as they have fallen asleep*":
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {message} YOU HAVE FALLEN ASLEEP"
-            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True, is_priority=True)
-
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
             ext.send_to_server(HPacket('Chat', " ", 0))
             ext.send_to_server(HPacket('Chat', ":startwork", 0))
-        
+
         elif id == my_id:
             log_message = f":star:[{user.name}]: {message}"
-            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000, is_priority=True)
+            # queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
+            send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
+
         else:
             log_message = f":speech_balloon:[{user.name}]: {message}"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
@@ -298,6 +286,8 @@ def on_recv_whisper(msg: HMessage):
                 room_id = message.split("RoomID:")[1].strip(" !")
                 log_message = f"Room ID Update\nYou are currently in RoomID: `{room_id}`"
                 queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x1E90FF)
+                if room_id == "107" or "105":
+                    ext.send_to_server(HPacket('Chat', ":startwork", 0))
             except Exception as e:
                 print(f"Error handling RoomID: {e}")
             return
@@ -316,12 +306,12 @@ def on_recv_whisper(msg: HMessage):
             elif bubbleType == 43:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":briefcase:[CORP][{user.name}]: {mention_message}"
-                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x964B00)
+                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x964B00)
 
             elif bubbleType == 33:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":tools:[STAFF] {mention_message}"
-                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFA500)
+                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0xFFA500)
 
             elif id == my_id and bubbleType == 1:
                 if "You begin working a new shift!" in message or \
@@ -420,14 +410,13 @@ def on_load_items(msg: HMessage):
 
 def anti_afk():
     ext.send_to_server(HPacket('AvatarExpression', 9))
-    threading.Timer(30, anti_afk).start()
+    threading.Timer(45, anti_afk).start()
 
 anti_afk()
 
 ext.intercept(Direction.TO_CLIENT, on_recv_chat, 'Chat')
 ext.intercept(Direction.TO_CLIENT, on_recv_chat, 'Shout')
 ext.intercept(Direction.TO_CLIENT, on_recv_whisper, 'Whisper')
-
 ext.intercept(Direction.TO_SERVER, on_sent_whisper, 'Whisper')
 ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 ext.intercept(Direction.TO_CLIENT, on_load_items, 'Items')
