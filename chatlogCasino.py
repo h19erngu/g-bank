@@ -32,7 +32,7 @@ my_name = None
 my_id = None
 
 batch_size = 20  # Max number of messages in one batch
-batch_delay = 120  # Seconds to wait before sending the batch
+batch_delay = 60  # Seconds to wait before sending the batch
 
 message_batch = []
 
@@ -161,7 +161,6 @@ def process_message_queue():
 
             message_batch.append((message, webhook_url, color, mention_everyone))
 
-            # If batch is full, send it
             if len(message_batch) >= batch_size:
                 send_batch_to_discord(message_batch)
                 message_batch.clear()
@@ -228,7 +227,7 @@ def on_recv_chat(msg: HMessage):
             (my_name.lower() in message.lower() or any(name.lower() in message.lower() for name in my_personal_name))
             and bubbleType not in [120, 118, 43] and "ishakk" not in message and "higher" not in message):
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {message}"
-            # queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700)
             send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
 
         elif is_in_staff_list(user.name):
@@ -244,7 +243,7 @@ def on_recv_chat(msg: HMessage):
 
         elif id == my_id:
             log_message = f":star:[{user.name}]: {message}"
-            # queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
             send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
 
         else:
