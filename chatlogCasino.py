@@ -27,6 +27,7 @@ ext.send_to_server(HPacket('InfoRetrieve'))
 users = RoomUsers(ext)
 
 my_personal_name = ["erik"] # add how many nicknames u want
+staff_list = ["Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Goku", "c", "Lisa", "$", "Bri", "Devil", "Angel", "Zane", "Leesa"]
 my_name = None
 my_id = None
 
@@ -191,6 +192,10 @@ def on_sent_whisper(msg: HMessage):
         log_message = f":speech_balloon:[WHISPER TO][{username}]: {custom_message}"
         queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700)
 
+
+def is_in_staff_list(username):
+    return username in staff_list
+
 def on_recv_chat(msg: HMessage):
     try:
         (id, message, idk, bubbleType) = msg.packet.read('isii')
@@ -215,7 +220,11 @@ def on_recv_chat(msg: HMessage):
             "Angel Blade",
             "Sword",
             "takes off their Armor*",
-            "and gives them a"
+            "and gives them a",
+            "accepts",
+            "declines",
+            "wins",
+            "offer"
         ]
         
         if any(term.lower() in message.lower() for term in forbidden_terms):
@@ -223,25 +232,29 @@ def on_recv_chat(msg: HMessage):
 
         if my_name and (
             (my_name.lower() in message.lower() or any(name.lower() in message.lower() for name in my_personal_name))
-            and bubbleType not in [120, 118, 43]
-            and "ishakk" not in message
-            and "higher" not in message
-            and "and purchases" not in message
-        ):
+            and bubbleType not in [120, 118, 43] and "ishakk" not in message and "higher" not in message):
             mention_message = f"{message}"
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {mention_message}"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
+
+        elif is_in_staff_list(user.name):
+            log_message = f":cop:[{user.name}]: {message}"
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
 
         elif id == my_id and message == "stops working as they have fallen asleep*":
             mention_message = f"{message}"
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {mention_message} YOU HAVE FALLEN ASLEEP"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
-
             ext.send_to_server(HPacket('Chat', " ", 0))
             ext.send_to_server(HPacket('Chat', ":startwork", 0))
-        else:
-            log_message = f":speech_balloon:[{user.name}]: {message}"
-            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
+
+        elif id == my_id:
+            log_message = f":star:[{user.name}]: {message}"
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFF0000)
+
+        # else:
+        #     log_message = f":speech_balloon:[{user.name}]: {message}"
+        #     queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x808080)
 
     except Exception as e:
         print(f"Error in on_recv_chat: {e}")
@@ -278,6 +291,8 @@ def on_recv_whisper(msg: HMessage):
                 room_id = message.split("RoomID:")[1].strip(" !")
                 log_message = f"Room ID Update\nYou are currently in RoomID: `{room_id}`"
                 queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x1E90FF)
+                if room_id == "107" or "105":
+                    ext.send_to_server(HPacket('Chat', ":startwork", 0))
             except Exception as e:
                 print(f"Error handling RoomID: {e}")
             return
@@ -296,12 +311,12 @@ def on_recv_whisper(msg: HMessage):
             elif bubbleType == 43:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":briefcase:[CORP][{user.name}]: {mention_message}"
-                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x964B00)
+                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x964B00)
 
             elif bubbleType == 33:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":tools:[STAFF] {mention_message}"
-                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFA500)
+                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0xFFA500)
 
             elif id == my_id and bubbleType == 1:
                 if "You begin working a new shift!" in message or \
@@ -400,15 +415,13 @@ def on_load_items(msg: HMessage):
 
 def anti_afk():
     ext.send_to_server(HPacket('AvatarExpression', 9))
-    threading.Timer(30, anti_afk).start()
+    threading.Timer(45, anti_afk).start()
 
 anti_afk()
 
 ext.intercept(Direction.TO_CLIENT, on_recv_chat, 'Chat')
 ext.intercept(Direction.TO_CLIENT, on_recv_chat, 'Shout')
 ext.intercept(Direction.TO_CLIENT, on_recv_whisper, 'Whisper')
-#ext.intercept(Direction.TO_SERVER, on_sent_chat, 'Chat')
-#ext.intercept(Direction.TO_SERVER, on_sent_chat, 'Shout')
 ext.intercept(Direction.TO_SERVER, on_sent_whisper, 'Whisper')
 ext.intercept(Direction.TO_CLIENT, on_user_object, 'UserObject')
 ext.intercept(Direction.TO_CLIENT, on_load_items, 'Items')

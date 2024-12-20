@@ -31,10 +31,26 @@ MY_NAME = None
 MY_ID = None
 respond_enabled = True
 last_message_time = 0
-offered_users = set(['PapiPanda', 'NigerianFarmer', 'Scrapper', 'Enes', 'ketamine', 'pugly', 'Bio', 'abdi', 'L', 'YG', 
-                 'night', 'purplemash', 'Sett', 'W22', 'Mason', 'tamago', 'ink', 'Mo', '6', 'Joseph', 'Chase-Chris', 
-                 'Pars', 'T', 'sicko', 'goated', 'Trust', 'hayl', 'Niall', 'cheese', 'Luz', 'hayley', 'Ray', 'BossAndCEO', 
-                 'miryoker', 'mala', 'huss', 'm4a1l9i7k', 'conreppin', 'Loud', 'yan', 'Dani', 'bug', '2'])
+offered_users = set(['april', 'menny', 'Mouse', 'Dani', 'voyvitu', 'Precious', '-DVRSTx', 'huss', 
+                     'Milla', 'korpm', 'PapiPanda', 'Mason', 'nad', 'Niall', 'BossAndCEO', 'electrica', 
+                     'goated', 'Jonkonia', 'k2', 'Subwuf', 'ffs', 'flacko', 'bef', 'fairy', 'Lek', 'alibabes', 
+                     'BillHicks', 'DRILLA', 'Plus', '1', 'Ray', 'kio', 'Berkhan', 'ketamine', '3490934902', 'wtf', 
+                     'Cock', 'rakel', 'Heidi', 'tamago', 'agony', 'meow', 'Bio', 'Nasty', 'PepGuardiola', 'Montreal', 
+                     'Elnor', 'T', 'Trust', '3490934903', 'Virgil', 'Iivid', 'Motion', 'OP', '2', 'Secret', 'sweetener', 
+                     'Titan', 'OD', 'muba', 'sf', 'File', 'DiddysBabyOil', 'Top', 'ed', 'ackerman', 'nik', 'babi', 
+                     'conreppin', 'Pars', 'Pizza', 'BBTF', 'IQ', 'ramazan', 'afk', 'cheese', 'Sett', 'Wei', 'asco', 
+                     'miryoker', 'Mizeria', 'Mo', 'Supernatural', 'Morwan', 'Joseph', 'LloydsBank', 'night', 'melancholy', 
+                     'cool', 'seventeen', 'Reece', 'paquito', 'Shanni', 'pugly', 'chip', 'Baro', 'gdluck', 'Appiah', 'P', 
+                     'Whiplash', 'abdi', 'm4a1l9i7k', 'dyst', 'Scrapper', 'sicko', 'NigerianFarmer', 'j', '6', 'magnus', 
+                     'des', 'Pineapple', 'Luz', 'bug', 'Kastro', 'dizzy', 'cookinwitkya', 'sol', 'mala', 'Allbehind', 
+                     'Acacia', 'mig', 'Chase-Chris', 'Low', '69', 'harv', 'Bad', 'ink', 'ric', 'slapper', 'yan', 'Loud', 
+                     'Smack', 'V', 'Doll', 'YG', 'Acnologia', 'Guts', 'nelura', 'Hentai', 'Flight', 'purplemash', 'Aishido', 
+                     'W22', 'Roboxy', 'Yak', 'sadlegendguy947', 'Armz', 'hayl', 'Sour', 'furkan', 'Nitro', 'sav', 'hayley', 'G', 
+                     'DoctorWho', 'Nuts', 'Total', 'violently', 'Scorp', 'NotStun', 'myth', 'bobs', 'Ish', 'Fullmetal', 'giulia', 
+                     'Enes', 'Stundawg', 'mad', 'rush', 'OG', '10', 'chico', 'xp', 'Murder',
+                      'L', 'Y', 'Leesa', 'Mommy', 'Kritz', 'TooFast', 'High', 'rd', 'Shark', 'Awasy', 'Jason'])
+
+'april', 'menny', 'Mouse', 'Dani', 'voyvitu', 'Precious', '-DVRSTx', 'huss', 'Milla', 'korpm', 'PapiPanda', 'Mason', 'nad', 'Niall', 'BossAndCEO', 'electrica', 'goated', 'Jonkonia', 'k2', 'Subwuf', 'ffs', 'flacko', 'bef', 'fairy', 'Lek', 'alibabes', 'BillHicks', 'DRILLA', 'Plus', '1', 'Ray', 'kio', 'Berkhan', 'ketamine', '3490934902', 'wtf', 'Cock', 'rakel', 'Heidi', 'tamago', 'agony', 'meow', 'Bio', 'Nasty', 'PepGuardiola', 'Montreal', 'Elnor', 'T', 'Trust', '3490934903', 'Virgil', 'Iivid', 'Motion', 'OP', '2', 'Secret', 'sweetener', 'Titan', 'OD', 'muba', 'sf', 'File', 'DiddysBabyOil', 'Top', 'ed', 'ackerman', 'nik', 'babi', 'conreppin', 'Pars', 'Pizza', 'BBTF', 'IQ', 'ramazan', 'afk', 'cheese', 'Sett', 'Wei', 'asco', 'miryoker', 'Mizeria', 'Mo', 'Supernatural', 'Morwan', 'Joseph', 'LloydsBank', 'night', 'melancholy', 'cool', 'seventeen', 'Reece', 'paquito', 'Shanni', 'pugly', 'chip', 'Baro', 'gdluck', 'Appiah', 'P', 'Whiplash', 'abdi', 'm4a1l9i7k', 'dyst', 'Scrapper', 'sicko', 'NigerianFarmer', 'j', '6', 'magnus', 'des', 'Pineapple', 'Luz', 'bug', 'Kastro', 'dizzy', 'cookinwitkya', 'sol', 'mala', 'Allbehind', 'Acacia', 'mig', 'Chase-Chris', 'Low', '69', 'harv', 'Bad', 'ink', 'ric', 'slapper', 'yan', 'Loud', 'Smack', 'V', 'Doll', 'YG', 'Acnologia', 'Guts', 'nelura', 'Hentai', 'Flight', 'purplemash', 'Aishido', 'W22', 'Roboxy', 'Yak', 'sadlegendguy947', 'Armz', 'hayl', 'Sour', 'furkan', 'Nitro', 'sav', 'hayley', 'G', 'DoctorWho', 'Nuts', 'Total', 'violently', 'Scorp', 'NotStun', 'myth', 'bobs', 'Ish', 'Fullmetal', 'giulia', 'Enes', 'Stundawg', 'mad', 'rush', 'OG', '10', 'chico', 'xp', 'Murder', 'L', 'Y', 'Leesa', 'Mommy', 'Kritz', 'TooFast', 'High', 'rd', 'Shark', 'Awasy', 'Jason'
 room_users = RoomUsers(ext)
 
 messages_list = [
@@ -43,12 +59,11 @@ messages_list = [
 ]
 
 username_list = [
-    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Alex", 
-    "Gosan", "paws", "R", "enemy", "Anne", "Ballin", "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "ed", "Ballin", "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
 staff_list = [
-    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "c"
 ]
 
 # === Helper Functions ===

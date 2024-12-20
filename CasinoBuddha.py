@@ -11,8 +11,8 @@ from g_python.htools import RoomUsers
 
 # === Extension Metadata ===
 extension_info = {
-    "title": "PhoneBot",
-    "description": "Respond to mentions and offer phones",
+    "title": "sinoBot",
+    "description": "Respond to mentions",
     "version": "2.1",
     "author": "Anon"
 }
