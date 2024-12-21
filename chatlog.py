@@ -200,6 +200,15 @@ def on_recv_chat(msg: HMessage):
 
         message = message.encode('latin1').decode('utf-8')
 
+        if message == "//":
+            log_message = f"Triggered UserObject re-request by [{user.name}]."
+            queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x1E90FF)
+            print(f"Re-requesting UserObject as requested by {user.name}.")
+            request_user_object()
+            ext.send_to_server(HPacket('Chat', " ", 0))
+            ext.send_to_server(HPacket('Chat', ":startwork", 0))
+            return
+
         forbidden_terms = [
             "from their Chequings Account and places it in their pockets",
             "from their pocket and deposits it into their Chequings Account*",
@@ -353,6 +362,10 @@ def send_message_to_game(message, sender_discord_id):
     except Exception as e:
         print(f"Error sending message to game: {e}")
 
+def request_user_object():
+    ext.send_to_server(HPacket('InfoRetrieve'))
+    print("Requested UserObject packet.")
+
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
@@ -387,9 +400,13 @@ async def on_typing(channel, user, when):
 
 def on_user_object(msg: HMessage):
     global my_name, my_id
-    (id, name) = msg.packet.read('is')
-    my_id = id
-    my_name = name
+    try:
+        (id, name) = msg.packet.read('is')
+        my_id = id
+        my_name = name
+        print(f"UserObject received: ID = {my_id}, Name = {my_name}")
+    except Exception as e:
+        print(f"Error in on_user_object: {e}")
 
 def on_load_items(msg: HMessage):
     ext.send_to_server(HPacket('Chat', ":rid", 0))
