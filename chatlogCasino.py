@@ -34,7 +34,7 @@ staff_list = ["Uzi","Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Gok
 my_name = None
 my_id = None
 
-batch_size = 20  # Max number of messages in one batch
+batch_size = 25  # Max number of messages in one batch
 batch_delay = 60  # Seconds to wait before sending the batch
 
 message_batch = []
@@ -298,28 +298,28 @@ def on_recv_whisper(msg: HMessage):
             if bubbleType == 120:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":skull:[GANG][{user.name}]: {mention_message}"
-                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x000000)
+                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x000000)
 
             elif bubbleType == 118 and "[VIP Alert]" in message:
                 mention_message = message.replace("[VIP Alert]", "").strip()
                 log_message = f":crown:[VIP] {mention_message}"
-                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0xFFFF00)
+                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFFF00)
 
             elif bubbleType == 43:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":briefcase:[CORP][{user.name}]: {mention_message}"
-                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x964B00)
+                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x964B00)
 
             elif bubbleType == 33:
                 mention_message = re.sub(r'\[.*?\]', '', message).strip()
                 log_message = f":tools:[STAFF] {mention_message}"
-                queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0xFFA500)
+                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFA500)
 
             elif id == my_id and bubbleType == 1:
                 if "You begin working a new shift!" in message or \
                    "You have started your" in message:
                     log_message = f":briefcase:[CORP][{user.name}]: {message}"
-                    queue_message(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x964B00)
+                    send_to_discord_embed(log_message, DISCORD_SPAM_WEBHOOK_URL, color=0x964B00)
                 elif "you have earned" in message:
                     log_message = f":briefcase:[CORP] {message}"
                     queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0x008000)
@@ -333,7 +333,7 @@ def on_recv_whisper(msg: HMessage):
             elif id != my_id:
                 mention_message = f"{message}"
                 log_message = f":speech_balloon:[WHISPER FROM] [{user.name}]: {mention_message}"
-                queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=False)
+                send_to_discord_embed(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=False)
         except Exception as e:
             print(f"Error handling bubble types: {e}")
 

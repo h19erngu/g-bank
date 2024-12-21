@@ -223,11 +223,7 @@ def on_recv_chat(msg: HMessage):
 
         if my_name and (
             (my_name.lower() in message.lower() or any(name.lower() in message.lower() for name in my_personal_name))
-            and bubbleType not in [120, 118, 43]
-            and "ishakk" not in message
-            and "higher" not in message
-            and "and purchases" not in message
-        ):
+            and bubbleType not in [120, 118, 43]):
             mention_message = f"{message}"
             log_message = f":index_pointing_at_the_viewer::skin-tone-3:[{user.name}]: {mention_message}"
             queue_message(log_message, DISCORD_LOG_WEBHOOK_URL, color=0xFFD700, mention_everyone=True)
