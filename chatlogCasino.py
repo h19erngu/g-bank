@@ -27,7 +27,10 @@ ext.send_to_server(HPacket('InfoRetrieve'))
 users = RoomUsers(ext)
 
 my_personal_name = ["erik"] # add how many nicknames u want
-staff_list = ["Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Goku", "c", "Lisa", "$", "Bri", "Devil", "Angel", "Zane", "Leesa","Pars","Roboxy","huss","korpm","Top","Jason","Rudolf"]
+staff_list = ["Uzi","Zodiak", "H", "Ghost", "sankru", "S", "Jeff", "Osama", "Goku", "c", "Lisa",
+               "$", "Bri", "Devil", "Angel", "Zane", "Leesa",
+               "Pars","Roboxy","huss","korpm","Top","Jason","Rudolf",
+               "Annie","Anne","69","Toni","Gosan","R","Alex","paws"]
 my_name = None
 my_id = None
 

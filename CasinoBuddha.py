@@ -40,10 +40,9 @@ messages_list = [
 ]
 
 username_list = [
-    "Demon", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", 
+    "Uzi", "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "c", 
     "korpm", "TTT", "Rudolf", "Jason", "huss", "Top", "Pars", "Zane", "Lisa", "$", 
-    "Bri", "Devil", "Angel"
-]
+    "Bri", "Devil", "Angel"]
 
 staff_list = [
     "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "Ish"
