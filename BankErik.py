@@ -59,7 +59,7 @@ messages_list = [
 ]
 
 username_list = [
-    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "ed", "Ballin", "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
+    "Zodiak", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku", "ed", "Ballin","sav" , "simple", "psycho", "BB-Ryda", "Zane", "Lisa", "$", "Bri", "Devil", "Angel",
 ]
 
 staff_list = [
