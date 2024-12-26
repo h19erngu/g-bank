@@ -110,7 +110,7 @@ ext.intercept(Direction.TO_CLIENT, on_user_remove, 'UserRemove')
 def send_to_discord_embed(message, webhook_url, color=0x000000, mention_everyone=False):
     try:
         embed = {
-            "content": "@everyone" if mention_everyone else "",
+            "content": f"<@{MY_DISCORD_ID}>" if mention_everyone else "",
             "embeds": [
                 {
                     "description": message,
@@ -273,7 +273,8 @@ def on_recv_whisper(msg: HMessage):
             "is not close enough!",
             "you have received $",
             "remaining till you receive your paycheck!",
-            "5 event points!"
+            "5 event points!",
+            "too quickly"
         ]
         if any(phrase in message.lower() for phrase in forbidden_phrases):
             return

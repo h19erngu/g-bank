@@ -41,6 +41,10 @@ target_furni = {}
 taxi_ids = [2, 20, 16, 19, 11, 9, 15, 12, 4, 5, 8, 24, 23, 3, 6, 10, 14, 26, 7, 28, 18, 27]
 last_taxis = []
 
+staff_list = [
+    "Zodiak","Ish","Shark", "H", "Ghost", "Sankru", "Susan", "Jeff", "Osama", "Goku",  "Zane", "Lisa", "$", "Bri", "Devil", "Angel", "c"
+]
+
 non_walkable_furni = [3266, 3277, 8120, 4240, 3178, 3534, 2518, 9831, 200009, 3725, 3267, 4435, 8517, 4306, 4287, 3330, 11655, 11626, 8890, 4932, 11647, 3714, 3275, 8029] #4435 = black hole
 spawn_type_ids = {500100, 500101, 500102, 500103, 500104, 500105, 500106, 500107, 500108, 500109, 200009, 200010, 14316, 200360} # 200360: Micropig
 trash_type_ids = {500100, 500101, 500102, 500103, 500104, 500105, 500106, 500107, 500108, 500109}
@@ -67,6 +71,10 @@ room_furni.on_floor_furni_load(on_floor_furni_loaded)
 
 def select_closest_furni():
     global target_furni
+
+    if check_staff():
+        return
+
     if not target_furni:
         if filtered_furni_list:
             user_x, user_y = room_users.room_users[my_id].tile.x, room_users.room_users[my_id].tile.y
@@ -108,7 +116,19 @@ def select_closest_furni():
                 ext.send_to_server(HPacket('StartTyping'))
                 threading.Timer(1.5, send_taxi_message).start()
 
+def check_staff():
+    for user in room_users.room_users.values():
+        if user.name in staff_list:
+            print(f"Staff member found: {user.name}. Paused.")
+            return True
+    print("No staff members found in the room.")
+    return False
+
 def send_taxi_message():
+
+    if check_staff():
+        return
+
     taxi = get_random_taxi()
     message = f":taxi {taxi}"
     if not target_furni:
@@ -172,6 +192,8 @@ def use_furni():
         furni_id = action_queue.pop(0)
         if furni_id in target_furni:
             furni = target_furni[furni_id]
+            packet = HPacket('UseFurniture', furni_id, 0)
+            packet = HPacket('UseFurniture', furni_id, 0)
             packet = HPacket('UseFurniture', furni_id, 0)
             ext.send_to_server(packet)
             if action_queue:
@@ -416,6 +438,8 @@ def anti_afk():
 anti_afk()
 
 def continuous_queue():
+    if check_staff():
+        return
     
     if target_furni:
         furni_id, _ = next(iter(target_furni.items()), (None, None))

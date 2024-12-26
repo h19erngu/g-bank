@@ -114,7 +114,7 @@ ext.intercept(Direction.TO_CLIENT, on_user_remove, 'UserRemove')
 def send_to_discord_embed(message, webhook_url, color=0x000000, mention_everyone=False):
     try:
         embed = {
-            "content": "@everyone" if mention_everyone else "",
+            "content": f"<@{MY_DISCORD_ID}>" if mention_everyone else "",
             "embeds": [
                 {
                     "description": message,
